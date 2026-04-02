@@ -15,6 +15,7 @@
 #include <zb_nrf_platform.h>
 #include "zb_range_extender.h"
 #include <zboss_api_zcl.h>
+#include <zcl/zb_zcl_poll_control.h>
 
 #include "bme280.h"
 #include "vcc.h"
@@ -126,6 +127,8 @@ static K_WORK_DELAYABLE_DEFINE(deep_sleep_work, enter_deep_sleep_work_handler);
 static void reboot_work_handler(struct k_work *work);
 static struct k_work_delayable reboot_work;
 static void led_timer_handler(struct k_timer *timer);
+static void poll_control_start_cb(zb_uint8_t param);
+static void poll_control_checkin_cb(zb_uint8_t param);
 
 LOG_MODULE_REGISTER(app, LOG_LEVEL_INF);
 
@@ -226,6 +229,20 @@ static void enter_deep_sleep_work_handler(struct k_work *work)
 	zb_zdo_pim_set_long_poll_interval(600000);
 }
 
+static void poll_control_start_cb(zb_uint8_t param)
+{
+	ARG_UNUSED(param);
+	LOG_INF("Poll Control start");
+	zb_zcl_poll_control_start(0, ENDPOINT_NUM);
+}
+
+static void poll_control_checkin_cb(zb_uint8_t param)
+{
+	ARG_UNUSED(param);
+	LOG_INF("Poll Control manual check-in");
+	zb_zcl_poll_control_start_check_in(0);
+}
+
 void zboss_signal_handler(zb_bufid_t bufid)
 {
 	static bool lastJoin = false;
@@ -241,7 +258,7 @@ void zboss_signal_handler(zb_bufid_t bufid)
 		if (status == RET_OK)
 		{
 			LOG_INF("Device joined the network. Configuring reporting...");
-			k_work_reschedule(&deep_sleep_work, K_SECONDS(45));
+			//k_work_reschedule(&deep_sleep_work, K_SECONDS(45));
 		}
 	}
 
@@ -269,11 +286,13 @@ void zboss_signal_handler(zb_bufid_t bufid)
 		k_timer_stop(&led_timer);
 		set_led_off(&led);
 		k_timer_start(&read_data_timer, READ_DATA_INITIAL_DELAY, READ_DATA_TIMER_PERIOD);
+		poll_control_start_cb(0);
 	}
 	else if ((lastJoin == true) && (thisJoin == false))
 	{
 		LOG_INF("left network!");
 		// set_led_on(&led);
+		zb_zcl_poll_control_stop();
 		k_timer_start(&led_timer, K_NO_WAIT, K_NO_WAIT);
 	}
 	lastJoin = thisJoin;
@@ -411,7 +430,9 @@ void button_handler(uint32_t button_state, uint32_t has_changed)
 	{
 		if (!was_factory_reset_done())
 		{
-			k_work_reschedule(&reboot_work, K_MSEC(50));
+			//k_work_reschedule(&reboot_work, K_MSEC(50));
+			zb_ret_t ret = ZB_SCHEDULE_APP_CALLBACK(poll_control_checkin_cb, 0);
+			LOG_INF("manual check-in scheduled ret=%d", ret);
 		}
 	}
 }
