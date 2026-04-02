@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "aht20.h": "c",
+        "zb_zcl_temp_measurement_addons.h": "c"
+    }
+}

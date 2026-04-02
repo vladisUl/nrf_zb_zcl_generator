@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../zigbee-r23"
+		},
+		{
+			"name": "nordic_diy",
+			"path": "."
+		}
+	],
+	"settings": {
+		"nrf-connect.applications": []
+	}
+}
