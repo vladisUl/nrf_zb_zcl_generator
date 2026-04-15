@@ -1,0 +1,25 @@
+project:
+  name: nordic_diy_template
+
+sdk:
+  zcl_path: "E:\\ncs_workspaces\\zigbee-r23\\ncs-zigbee\\lib\\zboss\\include\\zcl"
+
+device:
+  id: 0x000C
+  version: 0
+  endpoint: 1
+  report_attr_count: 2
+
+clusters:
+  - name: ZB_ZCL_CLUSTER_ID_BASIC
+    role: server
+  - name: ZB_ZCL_CLUSTER_ID_IDENTIFY
+    role: server
+  - name: ZB_ZCL_CLUSTER_ID_POWER_CONFIG
+    role: server
+  - name: ZB_ZCL_CLUSTER_ID_IDENTIFY
+    role: client
+  - name: ZB_ZCL_CLUSTER_ID_REL_HUMIDITY_MEASUREMENT
+    role: server
+    
+
